@@ -396,8 +396,10 @@ HTTPS_PROXY=http://127.0.0.1:7890 ~/.local/bin/claude auth login
 
 ## 底座怎么选
 
-- **Claude 订阅**（默认，第四步）：效果最好；要 Pro 或 Max 订阅，国内要代理。
-- **DeepSeek 等其他公司的接口**：Claude Code 不换，只让它去调别家的模型。国内直连、按量付费，效果要拿真实任务比一比。做法：`sudo -u agentos -i` 切到 agentos，`nano ~/.env`，把 `CLAUDE_CODE_OAUTH_TOKEN=` 那行前面加 `#`，加上三行（以厂商文档为准，DeepSeek 见文档里「Anthropic API」那页）：
+底座就是「真正干活的那个 AI」。有三种，机器人、采集、复盘都不用动，只换 agentos 账号里 `~/.env` 的钥匙。**本教程第四步用的是第一种。**
+
+- **A. Claude 订阅**（默认，第四步）：效果最好；要 Pro 或 Max 订阅，国内要代理。
+- **B. DeepSeek 等其他公司的接口**：Claude Code 不换，只让它去调别家的模型。国内直连、按量付费，效果要拿真实任务比一比。做法：`sudo -u agentos -i` 切到 agentos，`nano ~/.env`，把 `CLAUDE_CODE_OAUTH_TOKEN=` 那行前面加 `#`，加上三行（以厂商文档为准，DeepSeek 见文档里「Anthropic API」那页）：
 
 ```
 ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
@@ -406,6 +408,7 @@ ANTHROPIC_AUTH_TOKEN=你的API密钥
 ```
 
   保存（⌃O 回车、⌃X），`exit`，运行 `~/AgentOS/ops/check-agent.sh` 验证。
+- **C. WorkBuddy（腾讯的 CodeBuddy Code）**：用腾讯的 API 密钥，国内直连。**Mac 版还没接上**（Windows 版已经能用，在 `agent.env` 里写 `AGENT_ENGINE=codebuddy`）。要注意：WorkBuddy 桌面 App 本身不能当底座，要的是它的命令行 `codebuddy`（`npm install -g @tencent-ai/codebuddy-code`），密钥在 https://copilot.tencent.com/profile/ 生成。Mac 上要用，先找作者把这一项接上。
 
 ---
 
