@@ -30,7 +30,11 @@ files="$(printf '%s\n' "$all" | grep -Ev '/(文档|妙记)-' | grep . || true)"
 docs="$(printf '%s\n' "$all" | grep -E '/(文档|妙记)-' | grep . || true)"
 count="$(printf '%s' "$files" | grep -c . || true)"
 dcount="$(printf '%s' "$docs" | grep -c . || true)"
-echo "    当天往来 ${count} 个文件，新存文档和妙记 ${dcount} 篇"
+# 当天归档的公众号文章：存在 raw/wechat/articles/（按发布日期命名，不在日期文件夹里），按归档时间挑出当天的
+NEXT="$(date -j -v+1d -f %F "$DAY" +%F)"
+arts="$(cd "$RAW" 2>/dev/null && find ./wechat/articles -maxdepth 1 -name '*.md' -newermt "$DAY 00:00" ! -newermt "$NEXT 00:00" 2>/dev/null | sed 's|^\./|spaces/me/raw/|' | sort || true)"
+acount="$(printf '%s' "$arts" | grep -c . || true)"
+echo "    当天往来 ${count} 个文件，新存文档和妙记 ${dcount} 篇，公众号文章 ${acount} 篇"
 
 prompt="按技能 daily-review 写 ${DAY} 的每日复盘。
 昨天是 ${YESTERDAY}（有 spaces/me/kb/daily/${YESTERDAY}.md 就读它的「明天三件事」）。
@@ -38,6 +42,8 @@ prompt="按技能 daily-review 写 ${DAY} 的每日复盘。
 ${files:-（无）}
 当天新存或有更新的飞书文档和妙记（共 ${dcount} 篇；它们多半是以前就有的，只是今天第一次读到，别当成今天发生的事，和当天往来相关时再去读）：
 ${docs:-（无）}
+当天归档的公众号文章全文（共 ${acount} 篇；聊天里只有「[公众号] 标题」一行的，正文在这里，相关时去读）：
+${arts:-（无）}
 日程（今天起 7 天，排「明天三件事」时参考）：spaces/me/raw/feishu/日程/最近日程.md
 没采到的来源：${missing[*]:-无}
 全文写进 spaces/me/kb/daily/${DAY}.md，最后只回复那一页摘要。"
