@@ -34,8 +34,16 @@ else
   "$BREW" install --cask libreoffice || echo "    ⚠️ LibreOffice 没装上（不影响其他功能），之后重跑本脚本会再试"
 fi
 
-echo "==> 2/5 初始化（要输入这台 Mac 的开机密码，输的时候屏幕不显示，是正常的）"
-sudo "$REPO/ops/bootstrap-mac.sh"
+# 已经初始化过（免密规则在、运行副本在）：只用免密规则把运行副本更新到最新代码，不再要密码。
+# 要强制重做初始化（比如免密规则改过）：AGENTOS_BOOTSTRAP=1 ~/AgentOS/ops/install-mac.sh
+RUNTIME=/Users/agentos/agentos
+if [[ -z "${AGENTOS_BOOTSTRAP:-}" ]] && sudo -n -l 2>/dev/null | grep -q "ops/backup-kb.sh" \
+   && sudo -n -H -u agentos /usr/bin/git -C "$RUNTIME" pull --ff-only -q 2>/dev/null; then
+  echo "==> 2/5 初始化：之前做过了，运行副本已更新到最新代码"
+else
+  echo "==> 2/5 初始化（要输入这台 Mac 的开机密码，输的时候屏幕不显示，是正常的）"
+  sudo "$REPO/ops/bootstrap-mac.sh"
+fi
 
 echo "==> 3/5 飞书机器人"
 "$REPO/ops/install-bridge.sh"
