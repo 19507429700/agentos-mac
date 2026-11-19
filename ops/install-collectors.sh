@@ -38,7 +38,7 @@ MAIL_PASSWORD=
 MAIL_FOLDERS=INBOX
 MAIL_INITIAL_DAYS=7
 EOF
-  echo "已生成 ${ENV_FILE}，填好 MAIL_IMAP_HOST / MAIL_USER / MAIL_PASSWORD 后重新运行本脚本"
+  echo "已生成 ${ENV_FILE}，要采邮件就按教程第十步填好 MAIL_IMAP_HOST / MAIL_USER / MAIL_PASSWORD，再运行 ~/AgentOS/ops/install-mac.sh"
 fi
 chmod 600 "$ENV_FILE"
 
@@ -85,13 +85,15 @@ else
 fi
 
 # ---------- 讯飞录音笔（可选）----------
-if [[ -f "$STATE/iflyrec-skill/scripts/recording_assistant.py" ]]; then
+# 装了客户端、并且授权过（凭据由讯飞客户端存在 ~/.iflyrec-assistant/prod/）才装；没授权就装的话每 10 分钟报一次「授权失效」
+if [[ -f "$STATE/iflyrec-skill/scripts/recording_assistant.py" && -f "$HOME/.iflyrec-assistant/prod/credentials.json" ]]; then
   install_job collect-iflyrec
   echo "==> 讯飞录音笔：先拉一次"
-  /usr/bin/python3 "$REPO/ops/collect_iflyrec.py" || echo "    （这次拉取有报错，见上面；授权失效就重跑 ops/install-iflyrec.sh）"
+  /usr/bin/python3 "$REPO/ops/collect_iflyrec.py" || echo "    （这次拉取有报错，见上面；授权失效就重跑 ~/AgentOS/ops/install-iflyrec.sh）"
   echo "    之后每 10 分钟自动拉。日志：$STATE/logs/collect-iflyrec.log"
 else
-  echo "==> 讯飞录音笔没接，跳过（要接就运行 ops/install-iflyrec.sh，授权后重跑本脚本）"
+  launchctl bootout "gui/$(id -u)/com.agentos.collect-iflyrec" 2>/dev/null || true
+  echo "==> 讯飞录音笔没接（或还没授权），跳过（要接就做教程第十五步）"
 fi
 
 # ---------- 公众号文章自动抓取归档 ----------
@@ -122,7 +124,7 @@ if grep -qE '^OWNER_OPEN_ID=.+' "$STATE/bridge.env" 2>/dev/null; then
   install_job daily-review
   echo "==> 每日复盘：每天 23:00 写复盘并推到飞书和微信。日志：$STATE/logs/daily-review.log（手动试跑：$REPO/ops/daily-review.sh）"
 else
-  echo "==> 每日复盘跳过：bridge.env 里还没有 OWNER_OPEN_ID（先完成 D1 绑定）"
+  echo "==> 每日复盘跳过：bridge.env 里还没有 OWNER_OPEN_ID（先做教程第八步「绑定你自己」）"
 fi
 
 # ---------- 知识库备份 ----------

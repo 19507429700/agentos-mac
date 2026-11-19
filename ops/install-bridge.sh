@@ -18,7 +18,7 @@ if [[ ! -f "$ENV_FILE" ]]; then
 # 飞书开放平台 → 企业自建应用 → 凭证与基础信息
 FEISHU_APP_ID=
 FEISHU_APP_SECRET=
-# 第一次给机器人发消息，它会回你的 open_id，填到这里后重新运行 install-bridge.sh
+# 第一次给机器人发消息，它会回你的 open_id，填到这里后重新运行 ~/AgentOS/ops/install-mac.sh
 OWNER_OPEN_ID=
 # 以下一般不用改
 AGENTOS_RUNTIME=/Users/agentos/agentos
@@ -40,7 +40,7 @@ sed -e "s#__HOME__#$HOME#g" -e "s#__REPO__#$REPO#g" "$REPO/ops/launchd/com.agent
 plutil -lint "$PLIST" >/dev/null
 
 if ! grep -qE '^FEISHU_APP_ID=.+' "$ENV_FILE" || ! grep -qE '^FEISHU_APP_SECRET=.+' "$ENV_FILE"; then
-  echo "飞书凭据还没填，服务已装好但未启动。填完 $ENV_FILE 后重新运行本脚本。"
+  echo "飞书凭据还没填，服务已装好但未启动。按教程第六步填好 $ENV_FILE，再运行 ~/AgentOS/ops/install-mac.sh"
   exit 0
 fi
 
