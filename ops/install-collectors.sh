@@ -131,7 +131,7 @@ fi
 if ! "$REPO/ops/push-kb.sh" --check; then
   launchctl bootout "gui/$(id -u)/com.agentos.push-kb" 2>/dev/null || true
   echo "==> 知识库备份跳过（原因见上一行）"
-elif sudo -n -l 2>/dev/null | grep -q "ops/backup-kb.sh"; then
+elif sudo -n -H -u agentos /usr/bin/git -C /Users/agentos/agentos pull --ff-only >/dev/null 2>&1; then  # 免密规则在（初始化时和备份规则一起装的）
   install_job push-kb
   echo "==> 知识库：每天 03:00 备份到 GitHub。日志：$STATE/logs/push-kb.log（手动备份：$REPO/ops/push-kb.sh）"
 else
