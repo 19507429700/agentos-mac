@@ -12,7 +12,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 STATE="$HOME/.agentos"
 [[ $EUID -ne 0 ]] || { echo "不要用 sudo 运行，直接运行：$0（中间要管理员密码时会问你）" >&2; exit 1; }
-[[ "$REPO" == "$HOME/AgentOS" ]] || { echo "代码要放在 $HOME/AgentOS（现在在 $REPO），安装脚本按这个位置找" >&2; exit 1; }
+[[ "$REPO" == "$HOME/AgentOS" ]] || { echo "代码要放在 $HOME/AgentOS（现在在 ${REPO}），安装脚本按这个位置找" >&2; exit 1; }
 BREW="$(command -v brew || echo /opt/homebrew/bin/brew)"
 
 echo "==> 1/5 检查软件"

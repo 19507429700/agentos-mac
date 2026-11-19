@@ -40,7 +40,7 @@ sed -e "s#__HOME__#$HOME#g" -e "s#__REPO__#$REPO#g" "$REPO/ops/launchd/com.agent
 plutil -lint "$PLIST" >/dev/null
 
 if ! grep -qE '^FEISHU_APP_ID=.+' "$ENV_FILE" || ! grep -qE '^FEISHU_APP_SECRET=.+' "$ENV_FILE"; then
-  echo "飞书凭据还没填，服务已装好但未启动。按教程第六步填好 $ENV_FILE，再运行 ~/AgentOS/ops/install-mac.sh"
+  echo "飞书凭据还没填，服务已装好但未启动。按教程第六步填好 ${ENV_FILE}，再运行 ~/AgentOS/ops/install-mac.sh"
   exit 0
 fi
 

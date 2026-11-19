@@ -19,7 +19,7 @@ for p in /opt/homebrew/bin/python3.14 python3.14 python3.13 python3.12 python3.1
   if command -v "$p" >/dev/null 2>&1; then PY="$(command -v "$p")"; break; fi
 done
 [[ -n "$PY" ]] || { echo "没找到 Python 3.11 以上。先运行：brew install python@3.14" >&2; exit 1; }
-echo "==> 1/3 转写环境 $VENV（用 $PY）"
+echo "==> 1/3 转写环境 ${VENV}（用 ${PY}）"
 [[ -x "$VENV/bin/python" ]] || "$PY" -m venv "$VENV"
 "$VENV/bin/pip" install -q --disable-pip-version-check --upgrade pip
 

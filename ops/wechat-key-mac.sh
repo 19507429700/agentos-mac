@@ -17,7 +17,7 @@ PY=/opt/homebrew/bin/python3.14
 XW="$HOME/Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files"
 [[ $EUID -ne 0 ]] || { echo "不要用 sudo 运行" >&2; exit 1; }
 [[ -x "$PY" ]] || { echo "没有 Python 3.14，先运行 ~/AgentOS/ops/install-mac.sh" >&2; exit 1; }
-[[ -d "$XW" ]] || { echo "这台 Mac 上没找到微信的数据（$XW），先装微信并登录" >&2; exit 1; }
+[[ -d "$XW" ]] || { echo "这台 Mac 上没找到微信的数据（${XW}），先装微信并登录" >&2; exit 1; }
 
 PROXY=""
 if [[ "$(scutil --proxy | awk '/HTTPSEnable/ {print $3}')" == "1" ]]; then
@@ -47,7 +47,7 @@ PY
 )"
 [[ -n "$ROOT" ]] || { echo "    没找到任何微信账号的数据，先在微信里登录" >&2; exit 1; }
 ACCOUNT="$(basename "$(dirname "$ROOT")")"
-echo "    $ACCOUNT（最近在用的就是它）"
+echo "    ${ACCOUNT}（最近在用的就是它）"
 echo "    不确定是不是你的：先在微信里登录你的账号、收发一条消息，再重跑本脚本"
 
 echo "==> 3/5 取钥匙"

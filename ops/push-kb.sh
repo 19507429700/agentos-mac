@@ -20,7 +20,7 @@ if [[ -z "$ORIGIN" ]]; then
 fi
 for t in $TEMPLATE_REPOS; do
   if [[ "$(slug "$ORIGIN")" == "$t" ]]; then
-    echo "origin 还是模板仓库（$t），知识库不能推到这里。按教程第二步把 origin 换成你自己的私有仓库。"; exit 1
+    echo "origin 还是模板仓库（${t}），知识库不能推到这里。按教程第二步把 origin 换成你自己的私有仓库。"; exit 1
   fi
 done
 [[ "${1:-}" == "--check" ]] && { echo "知识库备份到：$ORIGIN"; exit 0; }

@@ -28,7 +28,7 @@ PY
 )
 curl --proto '=https' --tlsv1.2 -fsSL "$URL" -o "$WORK/skill.zip"
 [[ "$(shasum -a 256 "$WORK/skill.zip" | awk '{print $1}')" == "$SHA" ]] || { echo "技能包指纹不对，停止" >&2; exit 1; }
-echo "    版本 $VERSION，指纹核对通过"
+echo "    版本 ${VERSION}，指纹核对通过"
 
 echo "==> 2/3 解压并逐个核对文件指纹，放到 $DEST"
 unzip -q "$WORK/skill.zip" -d "$WORK/x"
