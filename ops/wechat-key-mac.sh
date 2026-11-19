@@ -58,7 +58,33 @@ if pgrep -x WeChat >/dev/null; then
 fi
 echo "    接下来会打开一个微信窗口（临时副本）：点「进入微信」，手机上要确认就确认。取到钥匙后它会自动关掉、打开原来的微信。"
 cd "$TOOL"
-"$PY" bootstrap_keys.py --acknowledge-debug-copy --db-root "$ROOT"
+# 工具输出的是英文 JSON，翻成中文提示（看不懂的原样显示）
+"$PY" bootstrap_keys.py --acknowledge-debug-copy --db-root "$ROOT" 2>&1 | /usr/bin/python3 -u -c '
+import json, sys
+SAY = {
+    "temporary_copy_location": "    已准备好临时微信副本",
+    "copy_prepared": "    ▶ 请在弹出的微信窗口里点「进入微信」，手机上要确认就确认（3 分钟内）",
+    "capture_finished": "    取到钥匙：{verified_databases}/{total_databases} 个数据库",
+    "owned_process_closed": "    临时微信已关闭",
+    "original_launch_requested": "    已重新打开原来的微信",
+    "original_signature_unchanged": None,
+    "keys_saved_privately": "    钥匙已保存（只有你自己的账号能读）",
+    "manual_restore_required": "    ⚠️ 临时微信还开着：请正常退出它（⌘Q），再打开原来的微信",
+    "bootstrap_error": "    ❌ 取钥匙失败：{reason}",
+}
+for line in sys.stdin:
+    d = {}
+    try:
+        d = json.loads(line)
+        msg = SAY.get(d.get("type"), line.rstrip())
+    except (ValueError, AttributeError):
+        msg = line.rstrip()
+    if msg:
+        try:
+            print(msg.format(**d) if isinstance(d, dict) else msg)
+        except (KeyError, NameError):
+            print(msg)
+'
 
 echo "==> 4/5 验证钥匙"
 if "$PY" wechat_db.py --db-root "$ROOT" verify >/dev/null; then

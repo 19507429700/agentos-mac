@@ -86,7 +86,8 @@ git -C ~/AgentOS remote add origin https://github.com/你的账号/你的私有�
 git -C ~/AgentOS push -u origin main
 ```
 
-> 最后一条会弹出 GitHub 登录，按提示在浏览器里登录授权。
+> 最后一条会在终端里问两样：`Username` 填你的 GitHub 用户名（GitHub 右上角头像菜单里那个名字，**不是邮箱**）；`Password` **不是登录密码**，要填「访问令牌」：浏览器打开 https://github.com/settings/personal-access-tokens/new ，Token name 随便写，有效期选长一点，Repository access 选 **Only select repositories** 并选你的私有仓库，Permissions 里加 **Contents → Read and write**，点 Generate token，复制 `github_pat_` 开头那串粘贴进去（屏幕不显示）。之后钥匙串会记住，每天的自动备份不用再输。
+> 报 `Repository not found`：多半是这台 Mac 钥匙串里存着**别人**的 GitHub 登录，git 拿别人的账号去推了。把地址里带上你的用户名再推：`git -C ~/AgentOS remote set-url origin https://你的用户名@github.com/你的用户名/你的私有仓库.git`
 > 不设自己的仓库也能用，只是知识库不备份。安装脚本会自动检查：`origin` 还是模板仓库时，**绝不会**把你的知识库推上去。
 
 ---
@@ -153,7 +154,43 @@ exit
 
 打开飞书开放平台 https://open.feishu.cn → 开发者后台 → 创建「**企业自建应用**」（名字随便，比如 agentos）：
 - 添加应用能力 → 「**机器人**」；
-- 权限管理 → 开通权限，切到「**应用身份权限**」，搜索并勾上：`im:message.p2p_msg:readonly`、`im:message:send_as_bot`、`im:resource`、`im:message:readonly`（最后这个用来下载你发给机器人的图片和文件）；
+- 权限管理 → 「**批量导入/导出权限**」→ 导入，把框里原来的内容全部删掉，粘贴下面这段，点「下一步，确认新增权限」。**第九步要用的权限也一次开好了**，后面不用再开：
+
+```json
+{
+  "scopes": {
+    "tenant": [
+      "im:message.p2p_msg:readonly",
+      "im:message:send_as_bot",
+      "im:resource",
+      "im:message:readonly"
+    ],
+    "user": [
+      "offline_access",
+      "im:message:readonly",
+      "im:message.p2p_msg:get_as_user",
+      "im:message.group_msg:get_as_user",
+      "im:chat:readonly",
+      "search:message",
+      "contact:user.base:readonly",
+      "contact:contact.base:readonly",
+      "docx:document:readonly",
+      "wiki:wiki:readonly",
+      "calendar:calendar:readonly",
+      "minutes:minutes.transcript:export",
+      "docs:document.media:download",
+      "sheets:spreadsheet:readonly",
+      "bitable:app:readonly",
+      "drive:drive:readonly",
+      "docx:document",
+      "docx:document.block:convert",
+      "docs:document.media:upload"
+    ]
+  }
+}
+```
+
+- 安全设置 → 重定向 URL → 添加 `http://localhost:18080/feishu/callback`（第九步授权要用）；
 - 记下「凭证与基础信息」里的 **App ID** 和 **App Secret**。
 
 > 已经有一台电脑在跑 AgentOS（比如 Windows 版）：这里要**另建一个新应用**，不要两台电脑共用一个机器人，否则飞书会把消息随机交给其中一台。
@@ -207,17 +244,15 @@ open -e ~/.agentos/bridge.env
 
 ## 第九步：飞书采集（读你的聊天、文档、日程）+ 写飞书文档
 
-开放平台 → 权限管理 → 开通权限，切到「**用户身份权限**」，开下面这些：
+第五步已经把这一步要的权限（`user` 那一组）和重定向 URL 都开好了。最后三项 `docx:document`、`docx:document.block:convert`、`docs:document.media:upload` 是让机器人能**建飞书文档、往里补内容**。
 
-`offline_access`、`im:message:readonly`、`im:message.p2p_msg:get_as_user`、`im:message.group_msg:get_as_user`、`im:chat:readonly`、`search:message`、`contact:user.base:readonly`、`contact:contact.base:readonly`、`docx:document:readonly`、`wiki:wiki:readonly`、`calendar:calendar:readonly`、`minutes:minutes.transcript:export`、`docs:document.media:download`、`sheets:spreadsheet:readonly`、`bitable:app:readonly`、`drive:drive:readonly`、`docx:document`、`docx:document.block:convert`、`docs:document.media:upload`
-
-最后三项是让机器人能**建飞书文档、往里补内容**；不想用可以不开。
-
-安全设置 → 重定向 URL 加：`http://localhost:18080/feishu/callback`。发布新版本，审批通过后授权（会自动打开浏览器，登录、点「授权」）：
+授权（会自动打开浏览器）：
 
 ```bash
 python3 ~/AgentOS/ops/feishu_auth.py
 ```
+
+⚠️ 浏览器里显示的飞书账号**必须是你自己的**：这台电脑的浏览器如果登录着别人的飞书，先退出再换你的账号，否则机器人读的就是别人的聊天。确认后点「授权」。
 
 看到 `✅ 授权成功`，并且下面**没有** `⚠️ 以下权限没有授予` 就对了。再跑一次安装脚本，装上飞书采集：
 
