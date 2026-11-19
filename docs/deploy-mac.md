@@ -305,7 +305,7 @@ HC_PUSH_KB=https://hc-ping.com/…
 open -e ~/.agentos/wechat.env
 ```
 
-在 `WECHAT_GROUPS=` 后面填群名里的关键词，多个用逗号隔开，保存。不采群就不用管。
+在 `WECHAT_GROUPS=` 后面填群名里的关键词，多个用逗号隔开，保存；想采所有群就填 `WECHAT_GROUPS=全部`（群消息很多，会很吵）。不采群就不用管。
 
 **3. 再跑一次安装脚本**：装上微信采集、公众号文章抓取，下载语音转文字的模型（约 460MB，只下一次）：
 

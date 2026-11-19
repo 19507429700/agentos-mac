@@ -15,7 +15,7 @@
   WECHAT_TOOL      解密工具目录（含 sqlcipher_probe.py），默认 ~/wechat-tool
   WECHAT_SELF_ID   你自己的 wxid，默认从 db_root 目录名推断
   WECHAT_INITIAL_DAYS  每个会话首次采集回溯多少天，默认 3
-  WECHAT_GROUPS    采哪些群（逗号/顿号分隔）：填群名关键词或群 id；私聊一律全采，群只采命中的。留空只采私聊
+  WECHAT_GROUPS    采哪些群（逗号/顿号分隔）：填群名关键词或群 id；私聊一律全采，群只采命中的。留空只采私聊；填「全部」采所有群
   WECHAT_FILES_MAX_MB  文件消息里的真实文件（PDF/Word 等）复制进知识库的大小上限，默认 25；填 0 关闭
   WECHAT_VOICE     语音转文字，默认开（装了转写环境才生效）；填 0 关闭
   WECHAT_VOICE_PYTHON  转写用的 Python，默认 ~/.agentos/voice-python/bin/python
@@ -414,6 +414,7 @@ def main(argv: list[str] | None = None) -> int:
     # db_root 形如 .../xwechat_files/wxid_xxx_yyyy/db_storage，自己的 wxid 是账号目录名去掉末尾 _yyyy
     self_id = os.environ.get("WECHAT_SELF_ID") or root.parent.name.rsplit("_", 1)[0]
     groups = [g.strip() for g in re.split(r"[,，、\n]", os.environ.get("WECHAT_GROUPS", "")) if g.strip()]
+    all_groups = any(g in ("全部", "all", "*") for g in groups)
     for need, what in ((root, "db_root"), (keys, "keys"), (tool / "sqlcipher_probe.py", "sqlcipher_probe.py")):
         if not Path(need).exists():
             log.error("缺少 %s：%s", what, need)
@@ -443,7 +444,7 @@ def main(argv: list[str] | None = None) -> int:
             continue
         if u.endswith("@chatroom"):  # 群：只采白名单命中的（群名含关键词，或 id 相等）
             name = wx.display_name(u)
-            if not any(g == u or g in name for g in groups):
+            if not all_groups and not any(g == u or g in name for g in groups):
                 continue
         try:
             n = collect_chat(wx, sess, st, raw_dir, initial_days, self_id, now, files_max_mb, transcribe)
