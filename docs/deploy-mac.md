@@ -431,6 +431,7 @@ git -C ~/AgentOS pull --no-edit upstream main
 ~/AgentOS/ops/install-mac.sh
 ```
 
+- **拉更新报 `Failed to connect to github.com`**：git 没走代理。照第二步第一条设好代理（`git config --global http.proxy http://127.0.0.1:你的端口`）再拉。
 - **机器人没反应**：先看 `bridge.log` 最后几行；再跑 `~/AgentOS/ops/check-agent.sh` 看底座通不通。
 - **令牌失效**（机器人突然不回、复盘写不出来，日志里有 `OAuth token revoked`、`401`）：重做第四步。
 - **代理没开或换了端口**：Claude 连不上。打开代理；端口变了就 `sudo -u agentos -i` 后 `nano ~/.env` 改 `HTTPS_PROXY`、`HTTP_PROXY` 两行。
