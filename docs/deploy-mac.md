@@ -288,52 +288,24 @@ HC_PUSH_KB=https://hc-ping.com/…
 **先知道这几件事：**
 - **只读这台电脑上你自己登录的微信**，不发消息、不改微信。读不到手机上有、电脑上没同步的历史。
 - 做法是解密微信存在电脑里的聊天库，**违反微信用户协议，有小概率封号**；只适合个人自用。
-- 微信在电脑上要**登录着、开着**。
+- 这台 Mac 上要先**登录你自己的微信**。电脑上以前登录过别人的微信也没关系，会自动认最近在用的那个账号。
+- 最好先让这个微信**收过一条语音**（让别人发一条，或者自己给文件传输助手发一条），语音转文字才稳。
 
-**1. 取钥匙**（用开源工具 macos-wechat-export，大约 20 分钟）：
-
-```bash
-git clone https://github.com/DaneelOlivaw1/macos-wechat-export.git ~/wechat-tool
-```
+**1. 取钥匙、写配置**（一条命令）：
 
 ```bash
-cd ~/wechat-tool && sh build.sh
+~/AgentOS/ops/wechat-key-mac.sh
 ```
 
-（编译时「发消息、操控界面」那部分报错可以不管，用不到。）找出你账号的数据库位置（登录过多个微信号时，按最近修改时间认）：
+它会：下载取钥匙的开源工具（第一次）→ 找出当前登录的微信账号 → **提示你正常退出微信**（菜单栏「微信」→ 退出微信，⌘Q；只退出程序，不要退出登录）→ 打开一个微信的临时窗口取钥匙（点「进入微信」，手机上要确认就确认）→ 验证 → 写好 `~/.agentos/wechat.env`。看到 `✅ 钥匙能打开全部数据库` 就成了。
 
-```bash
-cd ~/wechat-tool && python3.14 disk_inventory.py
-```
-
-**先在微信里正常退出**，再取钥匙（中途手机上可能要确认一次登录）：
-
-```bash
-cd ~/wechat-tool && python3.14 bootstrap_keys.py --acknowledge-debug-copy
-```
-
-验证（能列出和「文件传输助手」的最近几条就成功了）：
-
-```bash
-cd ~/wechat-tool && python3.14 wechat_db.py verify
-```
-
-**2. 写配置**：
+**2. 想采群**（私聊默认全采，群只采你点名的，群太多全采会很乱）：
 
 ```bash
 open -e ~/.agentos/wechat.env
 ```
 
-（文件不存在就先运行 `touch ~/.agentos/wechat.env` 再打开。）写这几行，第一行换成上面找到的路径：
-
-```
-WECHAT_DB_ROOT=/Users/你的用户名/Library/Containers/com.tencent.xinWeChat/Data/Documents/xwechat_files/你的账号目录/db_storage
-WECHAT_KEYS=~/wechat-tool/.wechat-local/keys.json
-WECHAT_TOOL=~/wechat-tool
-# 私聊全采；群只采这几个（群名关键词，逗号分隔）
-WECHAT_GROUPS=
-WECHAT_INITIAL_DAYS=3
-```
+在 `WECHAT_GROUPS=` 后面填群名里的关键词，多个用逗号隔开，保存。不采群就不用管。
 
 **3. 再跑一次安装脚本**：装上微信采集、公众号文章抓取，下载语音转文字的模型（约 460MB，只下一次）：
 
@@ -345,9 +317,8 @@ WECHAT_INITIAL_DAYS=3
 
 要知道的：
 - 语音会写成「[语音 14秒] 转出的文字」，只能转电脑上有音频的语音，没有的只留「[语音]」；在本机转写，不上传。不想要：`wechat.env` 加一行 `WECHAT_VOICE=0`。
-- 微信「退出登录」、重装、大版本升级后钥匙会失效，日志里会写「打开微信库失败」，重做第 1 步。关微信、重启电脑不影响。
-- 群消息很吵，**群只采你点名的**。
-- 工具里「发消息、操控微信」的脚本一律不碰。
+- 微信「退出登录」、换账号、重装、大版本升级后钥匙会失效，日志里会写「打开微信库失败」，重跑第 1 步。关微信、重启电脑不影响。
+- 取钥匙工具里「发消息、操控微信」的部分我们不编译、不使用。
 
 ---
 
@@ -450,5 +421,5 @@ git -C ~/AgentOS pull --no-edit upstream main
 - 第九步 飞书授权、建文档收到链接：
 - 第十步 用的哪个邮箱、登录成功没有：
 - 第十二步 出 Word、复盘：
-- 第十三步 微信 `verify` 结果、采到几条、语音有没有转成文字：
+- 第十三步 取钥匙有没有 ✅、采到几条、语音有没有转成文字：
 - 第十五步 讯飞授权、存了几条：
