@@ -15,8 +15,11 @@ RAW="$RUNTIME/spaces/me/raw"
 
 echo "==> $(date '+%F %T') 每日复盘 ${DAY}"
 missing=()
-/usr/bin/python3 "$REPO/ops/collect_mail.py" || missing+=("邮箱")
-/usr/bin/python3 "$REPO/ops/collect_feishu.py" || missing+=("飞书")
+# 没接的来源不补采（不然没配邮箱也会报错、复盘里写「邮箱没采到」）
+if grep -qE '^MAIL_PASSWORD=.+' "$HOME/.agentos/mail.env" 2>/dev/null; then
+  /usr/bin/python3 "$REPO/ops/collect_mail.py" || missing+=("邮箱")
+fi
+[[ -f "$HOME/.agentos/feishu_user_token.json" ]] && { /usr/bin/python3 "$REPO/ops/collect_feishu.py" || missing+=("飞书"); }
 # 微信（本机、个人自用）：用专用 Python（只有它有读微信目录的权限，见 install-collectors.sh）；没建就跳过
 WXPY="$HOME/.agentos/wechat-python/bin/python3.14"
 [[ -x "$WXPY" ]] && { "$WXPY" "$REPO/ops/collect_wechat.py" || missing+=("微信"); }
