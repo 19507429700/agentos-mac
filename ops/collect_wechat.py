@@ -6,7 +6,8 @@
 
 读取用解密工具里的 sqlcipher 只读封装（WECHAT_TOOL/sqlcipher_probe.py），本脚本只读不改、不发消息、不碰密钥提取。
 会话列表来自 session.db，人名/群名来自 contact.db，消息在 message_*.db 的 Msg_<md5(会话id)> 表。
-只导出文本消息；图片、视频等非文本只留占位（如「[图片]」）。
+只导出文本消息；图片在本机有的会解密存进知识库（raw/wechat/images/<日期>/），写成「[图片] 可看：路径」；
+视频等其他非文本只留占位（如「[视频]」）。
 语音：装了转写环境（ops/install-voice.sh）时，在本机转成文字，写成「[语音 14秒] 转出的文字」；没装就只留「[语音]」。
 
 配置（环境变量，或 ~/.agentos/wechat.env，每行 KEY=VALUE）：
@@ -18,6 +19,7 @@
   WECHAT_GROUPS    采哪些群（逗号/顿号分隔）：填群名关键词或群 id；私聊一律全采，群只采命中的。留空只采私聊；填「全部」采所有群
   WECHAT_FILES_MAX_MB  文件消息里的真实文件（PDF/Word 等）复制进知识库的大小上限，默认 25；填 0 关闭
   WECHAT_VOICE     语音转文字，默认开（装了转写环境才生效）；填 0 关闭
+  WECHAT_IMAGES    聊天里的图片解密存进知识库，默认开；填 0 关闭
   WECHAT_VOICE_PYTHON  转写用的 Python，默认 ~/.agentos/voice-python/bin/python
   AGENTOS_RAW      原文根目录，默认 /Users/agentos/agentos/spaces/me/raw
 
@@ -42,6 +44,9 @@ import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import wechat_images  # noqa: E402
 
 log = logging.getLogger("collect_wechat")
 
@@ -153,6 +158,7 @@ class Wechat:
         self.root = root
         self.keys = keys
         self._name_cache: dict[str, str] = {}
+        self._image_keys: list | None = None  # 解图片的候选钥匙，第一次用时才算
 
     def open(self, rel: str):
         p = self.root / rel
@@ -215,8 +221,10 @@ class Wechat:
                                   + str(int(r["real_sender_id"])))
                 wxid = sender[0]["user_name"] if len(sender) == 1 else ""
                 text, attach = self._decode(r["body"], ltype, chat_id, wxid, is_group)
-                voice = str(r.get("server_id") or "") if ltype == 34 else ""  # 语音：凭 server_id 去 media 库取音频
-                out.append((lid, ts, wxid, text, attach, voice))
+                svr = str(r.get("server_id") or "")
+                voice = svr if ltype == 34 else ""  # 语音：凭 server_id 去 media 库取音频
+                image = svr if ltype == 3 else ""   # 图片：凭 server_id 去资源库查文件名
+                out.append((lid, ts, wxid, text, attach, voice, image))
         return out
 
     def voice_audio(self, svr_ids: list[str]) -> dict[str, bytes]:
@@ -235,6 +243,37 @@ class Wechat:
             except Exception as e:
                 log.warning("读语音库 %s 失败：%s", p.name, e)
         return out
+
+    def save_image(self, chat_id: str, svr_id: str, ts: int, raw_dir: Path, day: str, self_id: str):
+        """把这条图片消息在本机的图片解密存进知识库，返回相对路径；本机没有或解不开返回 None。"""
+        if not svr_id.isdigit() or svr_id == "0":
+            return None
+        try:
+            with self.open("message/message_resource.db") as db:
+                rows = db.query("SELECT hex(i.packed_info) AS info, hex(d.packed_info) AS detail "
+                                "FROM MessageResourceInfo i JOIN MessageResourceDetail d ON d.message_id=i.message_id "
+                                "JOIN ChatName2Id c ON c.rowid=i.chat_id "
+                                f"WHERE c.user_name={_sql_text(chat_id)} AND i.message_svr_id={int(svr_id)}")
+        except Exception as e:
+            log.warning("读图片资源库失败：%s", e)
+            return None
+        hashes = wechat_images.resource_hashes([v for r in rows for v in (r.get("info"), r.get("detail"))])
+        if self._image_keys is None:
+            self._image_keys = wechat_images.candidate_keys(self.root.parent, self_id)
+        for f in wechat_images.image_files(self.root.parent, chat_id, ts, hashes):
+            try:
+                got = wechat_images.decode_dat(f.read_bytes(), self._image_keys)
+            except (OSError, ValueError):
+                continue
+            if got:
+                data, ext = got
+                name = f"{datetime.fromtimestamp(ts):%H%M%S}-{svr_id[-6:]}{ext}"
+                dest = Path(raw_dir) / "wechat" / "images" / day / name
+                if not dest.exists():
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    dest.write_bytes(data)
+                return f"spaces/me/raw/wechat/images/{day}/{name}"
+        return None
 
     def _decode(self, body_hex: str, ltype: int, chat_id: str, wxid: str, is_group: bool):
         """返回 (可读文本, 文件名或None)。文件名只有「文件」类消息才有。"""
@@ -336,7 +375,7 @@ def safe_name(name: str) -> str:
 
 
 def collect_chat(wx: Wechat, sess: dict, st: dict, raw_dir: Path, initial_days: int,
-                 self_id: str, now: float, files_max_mb: float = 25, transcribe=None) -> int:
+                 self_id: str, now: float, files_max_mb: float = 25, transcribe=None, images: bool = True) -> int:
     chat_id = sess["username"]
     cs = st["chats"].setdefault(chat_id, {})
     last_ts_seen = int(sess.get("last_timestamp") or 0)
@@ -368,13 +407,17 @@ def collect_chat(wx: Wechat, sess: dict, st: dict, raw_dir: Path, initial_days: 
                 heard = transcribe(wx.voice_audio(voices))
             except Exception as e:  # noqa: BLE001 — 转不了就只留「[语音]」
                 log.warning("%s 的语音转文字失败：%s", title, e)
-        for lid, ts, wxid, text, attach, voice in rows:
+        for lid, ts, wxid, text, attach, voice, image in rows:
             if voice:
                 text = voice_line(heard.get(voice))
             cursor[dbname] = max(cursor.get(dbname, 0), lid)
             dt = datetime.fromtimestamp(ts)
             day = dt.strftime("%Y-%m-%d")
             who = "我" if wxid == self_id else (wx.display_name(wxid) if wxid else "?")
+            if image and images:  # 图片：本机有就解密存进知识库，AI 能看、能识字、能发到飞书
+                rel = wx.save_image(chat_id, image, ts, raw_dir, day, self_id)
+                if rel:
+                    text = f"[图片] 可看：{rel}"
             if attach and files_max_mb > 0:  # 「文件」消息：把本机真实文件搬进知识库，附上路径供 Agent 读正文
                 rel = wx.copy_file(attach, raw_dir, day, files_max_mb)
                 if rel:
@@ -447,7 +490,8 @@ def main(argv: list[str] | None = None) -> int:
             if not all_groups and not any(g == u or g in name for g in groups):
                 continue
         try:
-            n = collect_chat(wx, sess, st, raw_dir, initial_days, self_id, now, files_max_mb, transcribe)
+            n = collect_chat(wx, sess, st, raw_dir, initial_days, self_id, now, files_max_mb, transcribe,
+                             images=os.environ.get("WECHAT_IMAGES", "1") != "0")
         except Exception as e:
             log.warning("采集会话 %s 失败：%s", u, e)
             continue
