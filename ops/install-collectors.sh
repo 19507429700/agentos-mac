@@ -46,8 +46,12 @@ if grep -qE '^MAIL_PASSWORD=.+' "$ENV_FILE"; then
   echo "==> 邮箱：测试登录"
   if /usr/bin/python3 "$REPO/ops/collect_mail.py" --check; then
     install_job collect-mail
-    echo "==> 邮箱：先拉一次"
-    /usr/bin/python3 "$REPO/ops/collect_mail.py" || echo "    （这次拉取有报错，见上面；定时任务已装好，下次会重试）"
+    if [[ ! -f "$STATE/mail_state.json" ]]; then  # 只有第一次装时当场拉一次，之后交给定时任务，重跑安装不用干等
+      echo "==> 邮箱：先拉一次"
+      /usr/bin/python3 "$REPO/ops/collect_mail.py" || echo "    （这次拉取有报错，见上面；定时任务已装好，下次会重试）"
+    else
+      echo "==> 邮箱：已经在采了（定时任务每 10 分钟一次）"
+    fi
     echo "    之后每 10 分钟自动拉。日志：$STATE/logs/collect-mail.log"
   else
     echo "    ⚠️ 邮箱登录失败（看上面的原因，检查 mail.env），邮件采集这次没装；其他照装"
@@ -59,8 +63,12 @@ fi
 # ---------- 飞书 ----------
 if [[ -f "$STATE/feishu_user_token.json" ]]; then
   install_job collect-feishu
-  echo "==> 飞书：先拉一次"
-  /usr/bin/python3 "$REPO/ops/collect_feishu.py" || echo "    （这次拉取有报错，见上面；定时任务已装好，下次会重试）"
+  if [[ ! -f "$STATE/feishu_state.json" ]]; then  # 只有第一次装时当场拉一次，之后交给定时任务，重跑安装不用干等
+    echo "==> 飞书：先拉一次"
+    /usr/bin/python3 "$REPO/ops/collect_feishu.py" || echo "    （这次拉取有报错，见上面；定时任务已装好，下次会重试）"
+  else
+    echo "==> 飞书：已经在采了（定时任务每 10 分钟一次）"
+  fi
   echo "    之后每 10 分钟自动拉。日志：$STATE/logs/collect-feishu.log"
 else
   echo "==> 飞书还没以你本人身份授权，跳过（先运行：python3 $REPO/ops/feishu_auth.py）"
@@ -76,8 +84,12 @@ if grep -qE '^WECHAT_DB_ROOT=.+' "$STATE/wechat.env" 2>/dev/null; then
     /opt/homebrew/bin/python3.14 -m venv --copies "$STATE/wechat-python"
   fi
   install_job collect-wechat
-  echo "==> 微信：先拉一次"
-  "$WXPY" "$REPO/ops/collect_wechat.py" || echo "    （这次拉取有报错，见上面；定时任务已装好，下次会重试）"
+  if [[ ! -f "$STATE/wechat_state.json" ]]; then  # 只有第一次装时当场拉一次，之后交给定时任务，重跑安装不用干等
+    echo "==> 微信：先拉一次"
+    "$WXPY" "$REPO/ops/collect_wechat.py" || echo "    （这次拉取有报错，见上面；定时任务已装好，下次会重试）"
+  else
+    echo "==> 微信：已经在采了（定时任务每 10 分钟一次）"
+  fi
   echo "    之后每 10 分钟自动拉。日志：$STATE/logs/collect-wechat.log"
   echo "    不想每次弹「访问其他 App 的数据」：系统设置 → 隐私与安全性 → 完全磁盘访问权限 → + → 加入 $WXPY"
 else
@@ -88,8 +100,12 @@ fi
 # 装了客户端、并且授权过（凭据由讯飞客户端存在 ~/.iflyrec-assistant/prod/）才装；没授权就装的话每 10 分钟报一次「授权失效」
 if [[ -f "$STATE/iflyrec-skill/scripts/recording_assistant.py" && -f "$HOME/.iflyrec-assistant/prod/credentials.json" ]]; then
   install_job collect-iflyrec
-  echo "==> 讯飞录音笔：先拉一次"
-  /usr/bin/python3 "$REPO/ops/collect_iflyrec.py" || echo "    （这次拉取有报错，见上面；授权失效就重跑 ~/AgentOS/ops/install-iflyrec.sh）"
+  if [[ ! -f "$STATE/iflyrec_state.json" ]]; then  # 只有第一次装时当场拉一次，之后交给定时任务，重跑安装不用干等
+    echo "==> 讯飞录音笔：先拉一次"
+    /usr/bin/python3 "$REPO/ops/collect_iflyrec.py" || echo "    （这次拉取有报错，见上面；授权失效就重跑 ~/AgentOS/ops/install-iflyrec.sh）"
+  else
+    echo "==> 讯飞录音笔：已经在采了（定时任务每 10 分钟一次）"
+  fi
   echo "    之后每 10 分钟自动拉。日志：$STATE/logs/collect-iflyrec.log"
 else
   launchctl bootout "gui/$(id -u)/com.agentos.collect-iflyrec" 2>/dev/null || true
@@ -107,8 +123,12 @@ if grep -qE '^WECHAT_DB_ROOT=.+' "$STATE/wechat.env" 2>/dev/null; then
     "$WXFETCHPY" -m pip install -q "requests>=2.28" "beautifulsoup4>=4.11"
   fi
   install_job fetch-wechat-articles
-  echo "==> 公众号文章：先抓一次"
-  /usr/bin/python3 "$REPO/ops/fetch_wechat_articles.py" || echo "    （这次抓取有报错，见上面；定时任务已装好，下次会重试）"
+  if [[ ! -f "$STATE/wechat_articles.json" ]]; then  # 只有第一次装时当场拉一次，之后交给定时任务，重跑安装不用干等
+    echo "==> 公众号文章：先抓一次"
+    /usr/bin/python3 "$REPO/ops/fetch_wechat_articles.py" || echo "    （这次抓取有报错，见上面；定时任务已装好，下次会重试）"
+  else
+    echo "==> 公众号文章：已经在采了（定时任务每 10 分钟一次）"
+  fi
   echo "    之后每 10 分钟自动抓 pending 链接并归档。日志：$STATE/logs/fetch-wechat-articles.log"
 else
   echo "==> 公众号文章抓取跳过：wechat.env 里还没有 WECHAT_DB_ROOT（先配置微信采集）"
