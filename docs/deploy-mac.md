@@ -271,13 +271,13 @@ python3 ~/AgentOS/ops/feishu_auth.py
 
 ## 第十步：邮箱（可选）
 
-先在邮箱网页版里打开 IMAP、生成**授权码**（QQ 邮箱：设置 → 账号 → POP3/IMAP 服务 → 开启 → 生成授权码；163 邮箱：设置 → POP3/SMTP/IMAP → 开启 IMAP）。然后打开配置：
+先在邮箱网页版里打开 IMAP、生成**授权码**（QQ 邮箱：设置 → 账号 → POP3/IMAP 服务 → 开启 → 生成授权码；163 / 126 邮箱：设置 → POP3/SMTP/IMAP → 开启 IMAP/SMTP 服务，按提示发短信验证，授权码只显示一次）。然后打开配置：
 
 ```bash
 open -e ~/.agentos/mail.env
 ```
 
-填三项：`MAIL_IMAP_HOST=`（QQ 邮箱填 `imap.qq.com`，163 邮箱填 `imap.163.com`）、`MAIL_USER=`（邮箱地址）、`MAIL_PASSWORD=`（授权码）。保存，再跑一次安装脚本：
+填三项：`MAIL_IMAP_HOST=`（QQ 邮箱填 `imap.qq.com`，163 邮箱填 `imap.163.com`，126 邮箱填 `imap.126.com`）、`MAIL_USER=`（邮箱地址）、`MAIL_PASSWORD=`（授权码）。保存，再跑一次安装脚本：
 
 ```bash
 ~/AgentOS/ops/install-mac.sh
