@@ -33,7 +33,7 @@ docs/                 部署文档、方案
 
 ## 日常
 
-- 拉更新：`git -C ~/AgentOS pull --no-edit upstream main`，再 `~/AgentOS/ops/install-mac.sh`
+- 拉更新：`git -C ~/AgentOS pull --no-rebase --no-edit upstream main`，再 `~/AgentOS/ops/install-mac.sh`
 - 只改了代码、重启飞书机器人：`~/AgentOS/ops/deploy.sh`
 - 检查底座：`~/AgentOS/ops/check-agent.sh`
 - 手动补写某天的复盘：`~/AgentOS/ops/daily-review.sh 2026-11-09`

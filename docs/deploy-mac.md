@@ -425,13 +425,14 @@ ANTHROPIC_AUTH_TOKEN=你的API密钥
 - **拉更新**（模板有新版本时）：
 
 ```bash
-git -C ~/AgentOS pull --no-edit upstream main
+git -C ~/AgentOS pull --no-rebase --no-edit upstream main
 ```
 
 ```bash
 ~/AgentOS/ops/install-mac.sh
 ```
 
+- **拉更新报 `Need to specify how to reconcile divergent branches`**：命令里少了 `--no-rebase`。你这边每天有知识库备份的提交、模板也有新提交，要用「合并」的方式接起来，照上面那条完整命令运行。
 - **拉更新报 `Failed to connect to github.com`**：git 没走代理。照第二步第一条设好代理（`git config --global http.proxy http://127.0.0.1:你的端口`）再拉。
 - **机器人没反应**：先看 `bridge.log` 最后几行；再跑 `~/AgentOS/ops/check-agent.sh` 看底座通不通。
 - **令牌失效**（机器人突然不回、复盘写不出来，日志里有 `OAuth token revoked`、`401`）：重做第四步。
