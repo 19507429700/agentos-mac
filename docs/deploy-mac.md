@@ -432,7 +432,7 @@ HTTPS_PROXY=http://127.0.0.1:7890 ~/.local/bin/claude auth login
 sudo -u agentos -H ~/AgentOS/ops/use-deepseek.sh
 ```
 
-    它按 DeepSeek 官方给 Claude Code 的配置写好 agentos 的 `~/.env`，模型**全部用 `deepseek-flash`**：这个模型能看图；如果只填地址和密钥、不指定模型，Claude Code 默认的 Opus 档会被 DeepSeek 换成 `deepseek-v4-pro`，**看不了图**（图片会变成 `[Unsupported Image]`）。DeepSeek 不走代理，代理软件关了也能用。再运行 `~/AgentOS/ops/check-agent.sh`，看到 `Claude 回复：OK` 就通了（名字还叫 Claude，实际是 DeepSeek 在回）。
+    它按 DeepSeek 官方给 Claude Code 的配置写好 agentos 的 `~/.env`，模型**全部用 `deepseek-flash`**：这个模型能看图；如果只填地址和密钥、不指定模型，Claude Code 默认的 Opus 档会被 DeepSeek 换成 `deepseek-v4-pro`，**看不了图**（图片会变成 `[Unsupported Image]`）。DeepSeek 不走代理，代理软件关了也能用。再运行 `~/AgentOS/ops/check-agent.sh`，看到 `Claude 回复：OK` 就通了（名字还叫 Claude，实际是 DeepSeek 在回；上面多一行 `[claude-code:unrecognized_model]` 是正常的，只是 Claude Code 不认识 DeepSeek 的模型名）。
   - **其他厂商**：`sudo -u agentos -i` 切到 agentos，`nano ~/.env`，把 `CLAUDE_CODE_OAUTH_TOKEN=` 那行前面加 `#`，按厂商文档加上 `ANTHROPIC_BASE_URL`、`ANTHROPIC_AUTH_TOKEN`，并且把 `ANTHROPIC_MODEL`、`ANTHROPIC_DEFAULT_OPUS_MODEL`、`ANTHROPIC_DEFAULT_SONNET_MODEL`、`ANTHROPIC_DEFAULT_HAIKU_MODEL`、`CLAUDE_CODE_SUBAGENT_MODEL` 都写成厂商的模型名（要看图就选能看图的那个）。保存（⌃O 回车、⌃X），`exit`，运行 `~/AgentOS/ops/check-agent.sh` 验证。
 - **C. WorkBuddy（腾讯的 CodeBuddy Code）**：用腾讯的 API 密钥，国内直连。**Mac 版还没接上**（Windows 版已经能用，在 `agent.env` 里写 `AGENT_ENGINE=codebuddy`）。要注意：WorkBuddy 桌面 App 本身不能当底座，要的是它的命令行 `codebuddy`（`npm install -g @tencent-ai/codebuddy-code`），密钥在 https://copilot.tencent.com/profile/ 生成。Mac 上要用，先找作者把这一项接上。
 

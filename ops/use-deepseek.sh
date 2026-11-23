@@ -10,28 +10,28 @@ set -euo pipefail
 [[ "$(id -un)" == agentos ]] || { echo "要以 agentos 身份运行：sudo -u agentos -H $0" >&2; exit 1; }
 cd "$HOME"
 ENV="$HOME/.env"
-touch "$ENV"
+touch "${ENV}"
 
 read -rs -p "粘贴 DeepSeek API 密钥（屏幕上不显示，是正常的），按回车：" KEY; echo
-KEY="$(printf '%s' "$KEY" | tr -d '[:space:]')"
-[[ -n "$KEY" ]] || { echo "没收到密钥，什么都没改" >&2; exit 1; }
+KEY="$(printf '%s' "${KEY}" | tr -d '[:space:]')"
+[[ -n "${KEY}" ]] || { echo "没收到密钥，什么都没改" >&2; exit 1; }
 
-cp "$ENV" "$ENV.bak.$(date +%Y%m%d%H%M%S)"
+cp "${ENV}" "${ENV}.bak.$(date +%Y%m%d%H%M%S)"
 TMP="$(mktemp)"
 # 去掉旧的底座设置（包括上次写的 DeepSeek 段），Claude 令牌改成注释
-grep -vE '^(ANTHROPIC_[A-Z_]+|CLAUDE_CODE_SUBAGENT_MODEL|CLAUDE_CODE_EFFORT_LEVEL|CLAUDE_CODE_AUTO_COMPACT_WINDOW)=|^# 底座：DeepSeek' "$ENV" \
-  | sed -E 's/^CLAUDE_CODE_OAUTH_TOKEN=/#CLAUDE_CODE_OAUTH_TOKEN=/' > "$TMP" || true
+grep -vE '^(ANTHROPIC_[A-Z_]+|CLAUDE_CODE_SUBAGENT_MODEL|CLAUDE_CODE_EFFORT_LEVEL|CLAUDE_CODE_AUTO_COMPACT_WINDOW)=|^# 底座：DeepSeek' "${ENV}" \
+  | sed -E 's/^CLAUDE_CODE_OAUTH_TOKEN=/#CLAUDE_CODE_OAUTH_TOKEN=/' > "${TMP}" || true
 # DeepSeek 国内直连：不走代理（代理软件关了也能用）
-if grep -qE '^NO_PROXY=' "$TMP"; then
-  grep -qE '^NO_PROXY=.*api\.deepseek\.com' "$TMP" || sed -i '' -E 's/^NO_PROXY=(.*)$/NO_PROXY=\1,api.deepseek.com/' "$TMP"
+if grep -qE '^NO_PROXY=' "${TMP}"; then
+  grep -qE '^NO_PROXY=.*api\.deepseek\.com' "${TMP}" || sed -i '' -E 's/^NO_PROXY=(.*)$/NO_PROXY=\1,api.deepseek.com/' "${TMP}"
 else
-  echo 'NO_PROXY=localhost,127.0.0.1,api.deepseek.com' >> "$TMP"
+  echo 'NO_PROXY=localhost,127.0.0.1,api.deepseek.com' >> "${TMP}"
 fi
-cat >> "$TMP" <<EOF
+cat >> "${TMP}" <<EOF
 
 # 底座：DeepSeek（ops/use-deepseek.sh 写入；换回 Claude 就删掉这一段，去掉上面令牌行前的 #）
 ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic
-ANTHROPIC_AUTH_TOKEN=$KEY
+ANTHROPIC_AUTH_TOKEN=${KEY}
 ANTHROPIC_MODEL=deepseek-flash[1m]
 ANTHROPIC_DEFAULT_OPUS_MODEL=deepseek-flash[1m]
 ANTHROPIC_DEFAULT_SONNET_MODEL=deepseek-flash[1m]
@@ -40,7 +40,7 @@ CLAUDE_CODE_SUBAGENT_MODEL=deepseek-flash
 CLAUDE_CODE_EFFORT_LEVEL=max
 CLAUDE_CODE_AUTO_COMPACT_WINDOW=786432
 EOF
-install -m 600 "$TMP" "$ENV"
-rm -f "$TMP"
+install -m 600 "${TMP}" "${ENV}"
+rm -f "${TMP}"
 unset KEY
-echo "已写好 $ENV（旧文件备份在 $ENV.bak.*）。回到你自己的账号运行 ~/AgentOS/ops/check-agent.sh 验证。"
+echo "已写好 ${ENV}（旧文件备份在 ${ENV}.bak.*）。回到你自己的账号运行 ~/AgentOS/ops/check-agent.sh 验证。"
