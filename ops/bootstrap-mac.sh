@@ -8,6 +8,9 @@
 set -euo pipefail
 
 [[ $EUID -eq 0 ]] || { echo "请用 sudo 运行：sudo $0" >&2; exit 1; }
+# 下面很多命令以 agentos 身份跑；当前目录如果是 agentos 进不去的地方（比如 ~/Downloads），
+# git 会报「Unable to read current working directory: Permission denied」，所以先换到人人能进的根目录
+cd /
 OWNER="${SUDO_USER:?请用 sudo 从你自己的账号运行}"
 OWNER_HOME="$(dscl . -read "/Users/$OWNER" NFSHomeDirectory | awk '{print $2}')"
 SRC_REPO="$OWNER_HOME/AgentOS"

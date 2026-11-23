@@ -1,6 +1,6 @@
 # AgentOS 安装教程：Mac
 
-照着从上往下做。每一步都在**你自己的账号**的「终端」里运行（启动台 → 其他 → 终端）。代码块里的命令**一次复制一条**，粘贴到终端，回车。
+照着从上往下做。每一步都在**你自己的账号**的「终端」里运行（按 ⌘ + 空格，输入「终端」或 Terminal，回车；新版 macOS 没有「启动台 → 其他」这个入口了）。代码块里的命令**一次复制一条**，粘贴到终端，回车。
 
 核心只有一条安装脚本，**可以反复运行**：每填好一样钥匙，就再跑一次，它会把能装的装上，已经装好的不会弄坏。
 
@@ -46,7 +46,18 @@
 xcode-select --install
 ```
 
-再装 **Homebrew**：打开 https://brew.sh ，把首页那一行命令复制到终端运行（要输开机密码）。装完它会提示运行两三行 `echo … >> ~/.zprofile` 之类的命令，**照着运行**，然后**关掉终端重新打开**。
+再装 **Homebrew**。它要从 GitHub 下载，国内**先让这个终端走代理**（终端里的命令不会自动用代理软件的「系统代理」；端口换成你代理软件里写的，常见 7890）：
+
+```bash
+export HTTPS_PROXY=http://127.0.0.1:7890 HTTP_PROXY=http://127.0.0.1:7890
+```
+
+然后打开 https://brew.sh ，把首页那一行命令复制到**同一个终端**运行：
+- 先问 `Password:`：输开机密码（屏幕不显示，是正常的），回车；
+- 再问 `Press RETURN/ENTER to continue`：直接回车；
+- 下载要几分钟，看到 `Installation successful!` 就装好了。
+
+装完它会提示运行两三行 `echo … >> ~/.zprofile` 之类的命令，**照着运行**，然后**关掉终端重新打开**。
 
 检查一下，能显示版本号就好：
 
@@ -100,7 +111,13 @@ git -C ~/AgentOS push -u origin main
 ~/AgentOS/ops/install-mac.sh
 ```
 
-中间会让你输一次**开机密码**（屏幕上不显示，是正常的）。它会：
+中间要你回答两次：
+- Homebrew 列出要装的软件后问 `Do you want to proceed with the installation? [y/n]`：输 `y`，回车；
+- 然后问 `Password:`：输**开机密码**（屏幕上不显示，是正常的），回车。
+
+建 `agentos` 账号那一步可能**停几分钟**，还会打出几行英文（`No clear text password…`、`Error:-14987`、`Home directory is assigned (not created!)`），都是正常的，等它往下走。装 Claude Code 时提示 `~/.local/bin is not in your PATH`，也不用管（教程里都写了完整路径）。
+
+它会：
 1. 用 Homebrew 装 Python 3.14、uv、sqlcipher、LibreOffice（LibreOffice 约 1GB，第一次要等一会儿）；
 2. 建隐藏账号 `agentos`、运行副本 `/Users/agentos/agentos`、令牌文件，配好免密规则，以 agentos 身份装 Claude Code；
 3. 生成空白配置 `~/.agentos/bridge.env`、`~/.agentos/mail.env`，装好飞书机器人（还没填钥匙，所以先不启动）；
