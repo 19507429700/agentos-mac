@@ -68,6 +68,17 @@ sudo brew services start tailscale
 - 做什么：让 Tailscale 开机就在后台运行，谁登录都不影响。要输开机密码，输的时候屏幕上不显示，输完回车。
 - 成功的样子：`Successfully started tailscale`。
 
+**国内网络必做：让 Tailscale 走代理**
+
+```bash
+sudo ~/AgentOS/ops/tailscale-proxy.sh 代理端口
+```
+
+- 为什么：开源版是系统服务，不读 Mac「系统设置」里的代理。国内直连 Tailscale 官方服务器会超时，下一步就会一直卡住，不出登录网址。
+- 做什么：只让 Tailscale 连官方服务器时走你的代理（端口和装 AgentOS 时 git 用的同一个，例如 7890）。成员之间的连接、本机查询服务不走代理。
+- 成功的样子：`✅ Tailscale 已改为经 127.0.0.1:端口 连官方服务器`。
+- 以后运行过 `brew upgrade tailscale` 或 `brew services restart tailscale`，要再运行一次这条。
+
 **3. 加入团队网络**
 
 ```bash
@@ -77,6 +88,8 @@ sudo tailscale up --operator=$(whoami)
 - 做什么：把这台 Mac 加进团队网络。屏幕上会出现一个 `https://login.tailscale.com/...` 的网址，复制到浏览器打开，用**收到邀请的那个账号**登录，选加入管理员的网络。
 - `--operator=$(whoami)` 是什么：让你自己的账号以后不用 sudo 就能打开、关闭共享。
 - 成功的样子：浏览器里显示 Success；终端里命令自己结束。
+- 本人不在电脑旁也行：把网址发给他，他在自己的手机或电脑浏览器里打开登录，效果一样。
+- 一直没出网址：多半是上一小步的代理没设好。按 Ctrl+C 停掉，看 `tail -5 /opt/homebrew/var/log/tailscaled.log`，有 `context deadline exceeded` 就是连不上官方服务器。
 
 **4. 检查**
 
@@ -152,6 +165,7 @@ python3 ~/AgentOS/ops/team_chat_server.py on --name "你的名字"
 
 | 现象 | 先查什么 |
 |---|---|
+| `sudo tailscale up` 一直不出登录网址 | 连不上官方服务器：运行 `tailscale-proxy.sh`（第二步），确认代理软件开着 |
 | `tailscale status` 说没在运行 | `sudo brew services restart tailscale`；还不行看 `sudo brew services info tailscale` |
 | 别人说你「不在线」 | Mac 睡眠或关机了。系统设置 → 电池（或节能）→ 打开「接通电源时防止自动睡眠」 |
 | 别人说你「关掉了共享」，可你没关 | 重启后还没登录账号：Mac 上查询服务要登录后才运行，登录一次就好 |
