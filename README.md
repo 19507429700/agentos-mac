@@ -38,4 +38,6 @@ docs/                 部署文档、方案
 - 检查底座：`~/AgentOS/ops/check-agent.sh`
 - 手动补写某天的复盘：`~/AgentOS/ops/daily-review.sh 2026-11-09`
 - 手动备份知识库：`~/AgentOS/ops/push-kb.sh`
+- 本机 AI 聊天（WorkBuddy、Claude Code、Codex、Grok Bot）：安装脚本自动每 10 分钟采集，搜索和复盘都会用到
+- 团队互查（在飞书里问同事最近和 AI 聊到哪了，Mac 和 Windows 互通）：见 [docs/team.md](docs/team.md)
 - 离线测试：`/usr/bin/python3 -m unittest discover -s ~/AgentOS/ops -p 'test_*.py'`

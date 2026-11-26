@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- 模板：team_chat_server.py on（或打开共享后重跑 install-collectors.sh）替换 __HOME__ / __REPO__ 后装到 ~/Library/LaunchAgents/ -->
+<!-- 团队互查的只读查询服务：只听本机 127.0.0.1:8765，经 Tailscale Serve 给团队网络里的人查。以你本人账号运行，登录后一直开着 -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.agentos.team-chat</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>__REPO__/ops/team_chat_server.py</string>
+    <string>serve</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>__REPO__</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PYTHONUNBUFFERED</key>
+    <string>1</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <!-- 意外退出就重启；30 秒内不重复拉起 -->
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+  <key>StandardOutPath</key>
+  <string>__HOME__/.agentos/logs/team-chat.log</string>
+  <key>StandardErrorPath</key>
+  <string>__HOME__/.agentos/logs/team-chat.log</string>
+</dict>
+</plist>

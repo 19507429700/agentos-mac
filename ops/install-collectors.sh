@@ -112,6 +112,25 @@ else
   echo "==> 讯飞录音笔没接（或还没授权），跳过（要接就做教程第十五步）"
 fi
 
+# ---------- 本机 AI 聊天（WorkBuddy、Claude Code、Codex、Grok Bot）----------
+# 只读你账号里这些软件的本地聊天记录，不读账号和密码；原文写进运行副本的 raw/ai/，复盘和搜索都会用到
+install_job collect-ai
+if [[ ! -f "$STATE/ai_chats.db" ]]; then  # 只有第一次装时当场采一次（往回读 30 天），之后交给定时任务
+  echo "==> 本机 AI 聊天：先采一次"
+  /usr/bin/python3 "$REPO/ops/collect_ai_chats.py" || echo "    （这次采集有报错，见上面；定时任务已装好，下次会重试）"
+else
+  echo "==> 本机 AI 聊天：已经在采了（定时任务每 10 分钟一次）"
+fi
+echo "    之后每 10 分钟自动采。日志：$STATE/logs/collect-ai.log"
+
+# ---------- 团队互查（本人打开过共享才装）----------
+if /usr/bin/python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("enabled") else 1)' "$STATE/team-sharing.json" 2>/dev/null; then
+  install_job team-chat
+  echo "==> 团队互查：查询服务已装好，登录后一直运行。看状态：python3 $REPO/ops/team_chat_server.py status"
+else
+  echo "==> 团队互查还没打开共享，跳过（要接入见 docs/team.md）"
+fi
+
 # ---------- 公众号文章自动抓取归档 ----------
 if grep -qE '^WECHAT_DB_ROOT=.+' "$STATE/wechat.env" 2>/dev/null; then
   # 专用 Python：wxfetch-python，带 requests+bs4（fetch_wx.py 抓正文用）。抓正文不读微信目录，

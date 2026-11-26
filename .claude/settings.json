@@ -9,11 +9,13 @@
       "Bash(rg *)",
       "Bash(python3 ops/search.py *)",
       "Bash(python3 ops/make_doc.py *)",
+      "Bash(python3 ops/team_chat_query.py *)",
       "Bash(soffice --headless *)"
     ],
     "deny": [
       "Read(./.env)",
       "Read(~/.env)",
+      "Read(~/.agentos/**)",
       "Bash(curl *)",
       "Bash(wget *)",
       "Bash(ssh *)",

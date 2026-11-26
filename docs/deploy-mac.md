@@ -442,6 +442,7 @@ sudo -u agentos -H ~/AgentOS/ops/use-deepseek.sh
 
 ## 日常和排错
 
+- **本机 AI 聊天**（WorkBuddy、Claude Code、Codex、Grok Bot）：安装脚本自动装好，每 10 分钟采集一次，在飞书里问「我最近和 AI 聊了什么」就能查。想和团队互相查进度，见 [team.md](team.md)。
 - **日志**都在 `~/.agentos/logs/`：`bridge.log`（机器人）、`collect-mail.log`、`collect-feishu.log`、`daily-review.log` 等。看最后几行：`tail -50 ~/.agentos/logs/bridge.log`
 - **拉更新**（模板有新版本时）：
 
