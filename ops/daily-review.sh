@@ -26,7 +26,8 @@ WXPY="$HOME/.agentos/wechat-python/bin/python3.14"
 # 本机 AI 聊天（WorkBuddy、Claude Code、Codex、Grok Bot）
 /usr/bin/python3 "$REPO/ops/collect_ai_chats.py" >/dev/null || missing+=("本机AI对话")
 
-all="$(cd "$RAW" 2>/dev/null && find . -path "./*/${DAY}/*" -type f -name '*.md' | sed 's|^\./|spaces/me/raw/|' | sort)"
+# AI 对话里存下的截图、文件（raw/ai/images、raw/ai/files）是附件，不算当天往来，聊天原文里写着路径，要看再打开
+all="$(cd "$RAW" 2>/dev/null && find . -path "./*/${DAY}/*" -type f -name '*.md' -not -path './ai/images/*' -not -path './ai/files/*' | sed 's|^\./|spaces/me/raw/|' | sort)"
 # 当天往来（聊天、邮件、收件箱）是复盘的主体；当天新存的飞书文档、妙记只是参考，相关时再读
 files="$(printf '%s\n' "$all" | grep -Ev '/(文档|妙记)-' | grep . || true)"
 docs="$(printf '%s\n' "$all" | grep -E '/(文档|妙记)-' | grep . || true)"
