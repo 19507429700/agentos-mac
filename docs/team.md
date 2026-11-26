@@ -1,6 +1,6 @@
 # 团队互查：在飞书里问同事最近和 AI 聊到哪了（Mac）
 
-> **测试中（2026-11-26）**：Mac 版代码已经做好，本机采集和后台服务已实测；装 Tailscale、和 Windows 互查还没在 Mac 上实测（见文末「测试记录」）。标「待实测」的地方是推断。
+> **测试中（2026-11-26）**：Mac 版代码已经做好，本机采集和后台服务已实测；Tailscale 已装好；登录团队网络、和 Windows 互查还没在 Mac 上实测（见文末「测试记录」）。标「待实测」的地方是推断。
 
 装好以后，你在自己的飞书机器人里问「张三最近三天和 AI 在做什么」，机器人会去张三的电脑上查他共享的 AI 聊天记录，带时间和出处回答。**Mac 和 Windows 在同一个团队网络里，可以互相查**，规则和 Windows 版完全一样（见 Windows 版教程 `agentos-windows/docs/team.md`）。
 
@@ -155,7 +155,7 @@ python3 ~/AgentOS/ops/team_chat_server.py on --name "你的名字"
 | `tailscale status` 说没在运行 | `sudo brew services restart tailscale`；还不行看 `sudo brew services info tailscale` |
 | 别人说你「不在线」 | Mac 睡眠或关机了。系统设置 → 电池（或节能）→ 打开「接通电源时防止自动睡眠」 |
 | 别人说你「关掉了共享」，可你没关 | 重启后还没登录账号：Mac 上查询服务要登录后才运行，登录一次就好 |
-| 机器人说「找不到 Tailscale」 | agentos 账号找不到 tailscale 命令；先确认第二步装的是开源版，不是 App 版（待实测） |
+| 机器人说「找不到 Tailscale」 | 先确认第二步装的是开源版（`/opt/homebrew/bin/tailscale` 存在），不是 App 版 |
 | 能 `tailscale status`，但查别人一直「连不上」 | 多半是代理的 TUN 模式抢了流量，见第二步的代理提示 |
 
 ## 这台 Mac 上不止一个人用 AI 时
@@ -172,5 +172,5 @@ python3 ~/AgentOS/ops/team_chat_server.py on --name "你的名字"
 |---|---|---|
 | 2026-11-26 | 一台在用的 Mac 上采集（写进临时目录，没动正在用的知识库） | 通过：WorkBuddy 108 个会话文件、Claude Code 114 个、Grok Bot 14 个，约 3 秒；Codex 本机没用过 |
 | 2026-11-26 | launchd 拉起查询服务、`off` 时卸掉 | 通过：本机 `/health` 有回应，卸掉后不再运行 |
-| — | 装 Tailscale 开源版；agentos 账号能不能用 `tailscale status` | 待测 |
+| 2026-11-26 | 装 Tailscale 开源版（1.104.7）；agentos 账号能不能用 `tailscale status` | 通过：装成开机系统服务（/Library/LaunchDaemons），控制接口对所有账号开放，两个账号都能运行 `tailscale status`（未登录时显示 Logged out.） |
 | — | Mac 登录 Tailscale 后，和 Windows 在飞书里互查 | 待测 |
